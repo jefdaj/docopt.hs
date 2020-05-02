@@ -178,19 +178,19 @@ longOption = LongOption
 -------------
 
 {-# DEPRECATED getAllArgsM "Monadic query functions will soon be removed" #-}
-getAllArgsM :: Monad m => Arguments -> Option -> m [String]
+getAllArgsM :: MonadFail m => Arguments -> Option -> m [String]
 getAllArgsM o e = return $ getAllArgs o e
 
 {-# DEPRECATED notPresentM "Monadic query functions will soon be removed" #-}
-notPresentM :: Monad m => Arguments -> Option -> m Bool
+notPresentM :: MonadFail m => Arguments -> Option -> m Bool
 notPresentM args o = return $ not $ isPresent args o
 
 {-# DEPRECATED isPresentM "Monadic query functions will soon be removed" #-}
-isPresentM :: Monad m => Arguments -> Option -> m Bool
+isPresentM :: MonadFail m => Arguments -> Option -> m Bool
 isPresentM args o = return $ isPresent args o
 
 {-# DEPRECATED getFirstArg "Use 'getAllArgs' instead" #-}
-getFirstArg :: Monad m => Arguments -> Option -> m String
+getFirstArg :: MonadFail m => Arguments -> Option -> m String
 getFirstArg args opt =
   let failure = fail $ "no argument given: " ++ show opt
   in  case opt `M.lookup` args of
