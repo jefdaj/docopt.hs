@@ -21,3 +21,6 @@ cabal.sandbox.config
 # extra
 tmp
 .stack-work
+
+# nix
+result
