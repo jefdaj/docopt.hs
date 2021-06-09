@@ -1,49 +1,35 @@
-git:
-  depth: 5
-
-cache:
-  directories:
-  - "$HOME/.stack"
-  - "$TRAVIS_BUILD_DIR/.stack-work"
+language: nix
+nix: 2.3.7
+sudo: false
 
 env:
   global:
-  - TASTY_QUICKCHECK_TESTS=10000
+  - CACHIX_CACHE=jefdaj
+
+install:
+- echo "trusted-users = $USER" | sudo tee -a /etc/nix/nix.conf
+- if [ "$TRAVIS_OS_NAME" = "osx" ]; then sudo launchctl kickstart -k system/org.nixos.nix-daemon && sleep 5 || true; else sudo systemctl restart nix-daemon; fi
+- nix-env -iA nixpkgs.cachix
+- cachix use $CACHIX_CACHE
 
 matrix:
   fast_finish: true
   include:
-  - env: GHCVER=8.8.4 STACK_YAML=stack.yaml
-    os: linux
-    addons:
-      apt:
-        sources:
-        - hvr-ghc
-        packages:
-        - ghc-8.8.4
+  - os: linux
+    dist: xenial
+    env: NIX_PATH=nixpkgs=channel:nixos-21.05
+  - os: osx
+    osx_image: xcode10.1
+    env: NIX_PATH=nixpkgs=channel:nixpkgs-21.05-darwin
 
-# TODO add once there's an lts release
-#   - env: GHCVER=9.0.1 STACK_YAML=stack-901.yaml
-#     os: linux
-#     addons:
-#       apt:
-#         sources:
-#         - hvr-ghc
-#         packages:
-#         - git-annex
-#         - ghc-9.0.1
-
-before_install:
-  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then export PATH=/opt/ghc/$GHCVER/bin:$PATH; fi
-  - mkdir -p ~/.local/bin
-  - export PATH=$HOME/.local/bin:$PATH
-  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then travis_retry curl -L https://get.haskellstack.org/stable/linux-x86_64.tar.gz | tar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack'; fi
-
-install:
-  - travis_wait stack --no-terminal --skip-ghc-check setup
+git:
+  # quiet: true
+  depth: 5
 
 script:
-  - stack --no-terminal --skip-ghc-check test
+  - nix-build release.nix
 
 notifications:
-  email: false
+  email:
+  on_success: false
+  on_failure: false
